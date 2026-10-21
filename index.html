@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdb929">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>SGD → THB</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1a1d21;--muted:#6b7280;--line:#d9dde3;--accent:#946500;--accent-bg:#fff3d1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1e2126;--text:#eceff3;--muted:#98a0ab;--line:#343942;--accent:#fdb929;--accent-bg:#3b2f12}}
+:root[data-theme="dark"]{--bg:#14161a;--card:#1e2126;--text:#eceff3;--muted:#98a0ab;--line:#343942;--accent:#fdb929;--accent-bg:#3b2f12}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans Thai","Sarabun",sans-serif;padding:20px}
+.card{max-width:420px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-size:20px;margin:0 0 4px}
+p.sub{color:var(--muted);font-size:14px;margin:0 0 6px}
+.lang{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden;flex:none}
+.lang button{margin:0;width:auto;border:0;border-radius:0;padding:6px 12px;font-size:13px;background:transparent;color:var(--muted)}
+.lang button.on{background:#fdb929;color:#1a1d21}
+label{display:block;font-size:14px;color:var(--muted);margin:14px 0 6px}
+input{width:100%;font-size:22px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+input:focus{outline:2px solid var(--accent);border-color:transparent}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+select{width:100%;margin-top:8px;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
+.mode{display:inline-block;margin-top:8px;font-size:13px;padding:4px 10px;border-radius:99px;background:var(--accent-bg);color:var(--accent);min-height:24px}
+.mode:empty{visibility:hidden}
+.result{margin-top:22px;padding:18px;border-radius:12px;background:var(--accent-bg);text-align:center}
+.result .big{font-size:34px;font-weight:700;color:var(--accent)}
+.result .f{font-size:14px;color:var(--muted);margin-top:6px;word-break:break-word}
+#copy{margin-top:12px;width:100%;padding:12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <div>
+      <h1 id="t-title"></h1>
+      <p class="sub" id="t-sub"></p>
+    </div>
+    <div class="lang"><button id="l-th" type="button">ไทย</button><button id="l-en" type="button">EN</button></div>
+  </div>
+
+  <label for="amt" id="t-amt"></label>
+  <input id="amt" inputmode="decimal" autocomplete="off">
+
+  <label for="rate" id="t-rate"></label>
+  <input id="rate" inputmode="decimal" autocomplete="off">
+  <div class="hint" id="t-hint"></div>
+  
+  <span class="mode" id="mode"></span>
+
+  <div class="result">
+    <div class="big" id="out">– THB</div>
+    <div class="f" id="formula">&nbsp;</div>
+  </div>
+  <button id="copy" type="button"></button>
+</div>
+<script>
+var T={
+ th:{title:'แปลง SGD → THB',sub:'ใส่ค่าสินค้า (SGD) แล้วใส่เรทที่ขึ้นในแอปโอนเงินของผู้โอน',amt:'ค่าสินค้า (SGD)',rate:'เรทที่ขึ้นในแอปโอนเงินของผู้โอน',hint:'เช่น 26.31 หรือ 0.038',auto:'อัตโนมัติ: เลข 2 หลัก = คูณ, ขึ้นต้น 0.0 = หาร',mul:'SGD → THB (เช่น 26.31) : คูณ',div:'THB → SGD (เช่น 0.038) : หาร',mMul:'SGD → THB : เอาไปคูณ',mDiv:'THB → SGD : เอาไปหาร',bad:'เรทไม่ตรงรูปแบบ (ต้องเป็นเลข 2 หลัก หรือขึ้นต้น 0.0 / .0)',copy:'คัดลอกผลลัพธ์',ok:'คัดลอกแล้ว',fail:'คัดลอกไม่ได้'},
+ en:{title:'SGD → THB Converter',sub:'Enter the price (SGD), then the rate shown in the sender’s transfer app',amt:'Price (SGD)',rate:'Rate shown in the sender’s transfer app',hint:'e.g. 26.31 or 0.038',auto:'Auto: 2-digit number = multiply, starts with 0.0 = divide',mul:'SGD → THB (e.g. 26.31) : multiply',div:'THB → SGD (e.g. 0.038) : divide',mMul:'SGD → THB : multiply',mDiv:'THB → SGD : divide',bad:'Rate format not recognised (needs a 2-digit number or start with 0.0 / .0).',copy:'Copy result',ok:'Copied',fail:'Copy failed'}
+};
+var lang='th';
+try{var sv=localStorage.getItem('sgdthb-lang');if(sv==='en'||sv==='th')lang=sv}catch(e){}
+function $(i){return document.getElementById(i)}
+var rateEl=$('rate'),amtEl=$('amt'),modeEl=$('mode'),outEl=$('out'),fEl=$('formula'),last='';
+function num(v){return parseFloat(String(v).replace(/,/g,'.').trim())}
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function setLang(l){
+  lang=l;var t=T[l];
+  try{localStorage.setItem('sgdthb-lang',l)}catch(e){}
+  document.documentElement.lang=l;document.title=t.title;
+  $('t-title').textContent=t.title;$('t-sub').textContent=t.sub;$('t-amt').textContent=t.amt;$('t-rate').textContent=t.rate;$('t-hint').textContent=t.hint;
+  $('copy').textContent=t.copy;
+  $('l-th').textContent=l==='en'?'TH':'ไทย';$('l-th').className=l==='th'?'on':'';$('l-en').className=l==='en'?'on':'';
+  calc();
+}
+function reset(){outEl.textContent='– THB';fEl.innerHTML='&nbsp;';last=''}
+function calc(){
+  var t=T[lang],r=num(rateEl.value),a=num(amtEl.value),s=rateEl.value.trim(),div;
+  if(!(r>0)){modeEl.textContent='';reset();return}
+  {
+    if(/^0?[.,]0/.test(s))div=true;
+    else if(/^\d{2}([.,]\d*)?$/.test(s))div=false;
+    else{modeEl.textContent=t.bad;reset();return}
+  }
+  modeEl.textContent=div?t.mDiv:t.mMul;
+  if(!(a>=0)){reset();return}
+  var res=div?a/r:a*r;
+  last=fmt(res);
+  outEl.textContent=last+' THB';
+  fEl.textContent=div?(a+' ÷ '+r+' = '+last+' THB'):(r+' × '+a+' = '+last+' THB');
+}
+rateEl.addEventListener('input',calc);amtEl.addEventListener('input',calc);
+$('l-th').addEventListener('click',function(){setLang('th')});
+$('l-en').addEventListener('click',function(){setLang('en')});
+$('copy').addEventListener('click',function(){
+  if(!last)return;
+  function flash(x){var b=$('copy');b.textContent=x;setTimeout(function(){b.textContent=T[lang].copy},1200)}
+  try{navigator.clipboard.writeText(last).then(function(){flash(T[lang].ok)},function(){flash(T[lang].fail)})}catch(e){flash(T[lang].fail)}
+});
+setLang(lang);
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
