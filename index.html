@@ -30,6 +30,7 @@ select{width:100%;margin-top:8px;font-size:15px;padding:10px;border:1px solid va
 .mode:empty{visibility:hidden}
 .result{margin-top:0;padding:26px 18px;border-radius:12px;background:var(--accent-bg);text-align:center}
 .result .big{font-size:52px;line-height:1.15;font-weight:700;color:var(--accent);overflow-wrap:anywhere}
+.result .cur{font-size:24px;font-weight:700}
 .rl{font-size:22px;font-weight:700;color:var(--text);margin-top:24px;margin-bottom:8px}
 .f{font-size:14px;color:var(--muted);margin-top:6px;text-align:center;word-break:break-word}
 </style>
@@ -55,7 +56,7 @@ select{width:100%;margin-top:8px;font-size:15px;padding:10px;border:1px solid va
 
   <div class="rl" id="t-res"></div>
   <div class="result">
-    <div class="big" id="out">– THB</div>
+    <div class="big" id="out">0<span class="cur"> THB</span></div>
     <div class="f" id="formula">&nbsp;</div>
   </div>
 </div>
@@ -79,7 +80,7 @@ function setLang(l){
   $('l-th').textContent=l==='en'?'TH':'ไทย';$('l-th').className=l==='th'?'on':'';$('l-en').className=l==='en'?'on':'';
   calc();
 }
-function reset(){outEl.textContent='– THB';fEl.innerHTML='&nbsp;';last=''}
+function reset(){outEl.innerHTML='0<span class="cur"> THB</span>';fEl.innerHTML='&nbsp;';last=''}
 function calc(){
   var t=T[lang],r=num(rateEl.value),a=num(amtEl.value),s=rateEl.value.trim(),div;
   if(!(r>0)){modeEl.textContent='';reset();return}
@@ -92,7 +93,7 @@ function calc(){
   if(!(a>=0)){reset();return}
   var res=div?a/r:a*r;
   last=fmt(res);
-  outEl.textContent=last+' THB';
+  outEl.innerHTML=last+'<span class="cur"> THB</span>';
   fEl.textContent=div?(a+' ÷ '+r+' = '+last+' THB'):(r+' × '+a+' = '+last+' THB');
 }
 rateEl.addEventListener('input',calc);amtEl.addEventListener('input',calc);
