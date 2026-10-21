@@ -28,10 +28,10 @@ input:focus{outline:2px solid var(--accent);border-color:transparent}
 select{width:100%;margin-top:8px;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text)}
 .mode{display:inline-block;margin-top:8px;font-size:13px;padding:4px 10px;border-radius:99px;background:var(--accent-bg);color:var(--accent);min-height:24px}
 .mode:empty{visibility:hidden}
-.result{margin-top:22px;padding:18px;border-radius:12px;background:var(--accent-bg);text-align:center}
-.result .big{font-size:34px;font-weight:700;color:var(--accent)}
-.result .f{font-size:14px;color:var(--muted);margin-top:6px;word-break:break-word}
-#copy{margin-top:12px;width:100%;padding:12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer}
+.result{margin-top:0;padding:26px 18px;border-radius:12px;background:var(--accent-bg);text-align:center}
+.result .big{font-size:52px;line-height:1.15;font-weight:700;color:var(--accent);overflow-wrap:anywhere}
+.rl{font-size:22px;font-weight:700;color:var(--text);margin-top:24px;margin-bottom:8px}
+.f{font-size:14px;color:var(--muted);margin-top:6px;text-align:center;word-break:break-word}
 </style>
 </head>
 <body>
@@ -53,16 +53,16 @@ select{width:100%;margin-top:8px;font-size:15px;padding:10px;border:1px solid va
   
   <span class="mode" id="mode"></span>
 
+  <div class="rl" id="t-res"></div>
   <div class="result">
     <div class="big" id="out">– THB</div>
     <div class="f" id="formula">&nbsp;</div>
   </div>
-  <button id="copy" type="button"></button>
 </div>
 <script>
 var T={
- th:{title:'แปลง SGD → THB',sub:'ใส่ค่าสินค้า (SGD) แล้วใส่เรทที่ขึ้นในแอปโอนเงินของผู้โอน',amt:'ค่าสินค้า (SGD)',rate:'เรทที่ขึ้นในแอปโอนเงินของผู้โอน',hint:'เช่น 26.31 หรือ 0.038',auto:'อัตโนมัติ: เลข 2 หลัก = คูณ, ขึ้นต้น 0.0 = หาร',mul:'SGD → THB (เช่น 26.31) : คูณ',div:'THB → SGD (เช่น 0.038) : หาร',mMul:'SGD → THB : เอาไปคูณ',mDiv:'THB → SGD : เอาไปหาร',bad:'เรทไม่ตรงรูปแบบ (ต้องเป็นเลข 2 หลัก หรือขึ้นต้น 0.0 / .0)',copy:'คัดลอกผลลัพธ์',ok:'คัดลอกแล้ว',fail:'คัดลอกไม่ได้'},
- en:{title:'SGD → THB Converter',sub:'Enter the price (SGD), then the rate shown in the sender’s transfer app',amt:'Price (SGD)',rate:'Rate shown in the sender’s transfer app',hint:'e.g. 26.31 or 0.038',auto:'Auto: 2-digit number = multiply, starts with 0.0 = divide',mul:'SGD → THB (e.g. 26.31) : multiply',div:'THB → SGD (e.g. 0.038) : divide',mMul:'SGD → THB : multiply',mDiv:'THB → SGD : divide',bad:'Rate format not recognised (needs a 2-digit number or start with 0.0 / .0).',copy:'Copy result',ok:'Copied',fail:'Copy failed'}
+ th:{title:'แปลง SGD → THB',sub:'ใส่ค่าสินค้า (SGD) แล้วใส่เรทที่ขึ้นในแอปโอนเงินของผู้โอน',amt:'ค่าสินค้า (SGD)',rate:'เรทที่ขึ้นในแอปโอนเงินของผู้โอน',hint:'เช่น 26.31 หรือ 0.038',res:'ยอดที่ต้องโอน',auto:'อัตโนมัติ: เลข 2 หลัก = คูณ, ขึ้นต้น 0.0 = หาร',mul:'SGD → THB (เช่น 26.31) : คูณ',div:'THB → SGD (เช่น 0.038) : หาร',mMul:'SGD → THB : เอาไปคูณ',mDiv:'THB → SGD : เอาไปหาร',bad:'เรทไม่ตรงรูปแบบ (ต้องเป็นเลข 2 หลัก หรือขึ้นต้น 0.0 / .0)',copy:'คัดลอกผลลัพธ์',ok:'คัดลอกแล้ว',fail:'คัดลอกไม่ได้'},
+ en:{title:'SGD → THB Converter',sub:'Enter the price (SGD), then the rate shown in the sender’s transfer app',amt:'Price (SGD)',rate:'Rate shown in the sender’s transfer app',hint:'e.g. 26.31 or 0.038',res:'Transfer amount',auto:'Auto: 2-digit number = multiply, starts with 0.0 = divide',mul:'SGD → THB (e.g. 26.31) : multiply',div:'THB → SGD (e.g. 0.038) : divide',mMul:'SGD → THB : multiply',mDiv:'THB → SGD : divide',bad:'Rate format not recognised (needs a 2-digit number or start with 0.0 / .0).',copy:'Copy result',ok:'Copied',fail:'Copy failed'}
 };
 var lang='th';
 try{var sv=localStorage.getItem('sgdthb-lang');if(sv==='en'||sv==='th')lang=sv}catch(e){}
@@ -74,8 +74,8 @@ function setLang(l){
   lang=l;var t=T[l];
   try{localStorage.setItem('sgdthb-lang',l)}catch(e){}
   document.documentElement.lang=l;document.title=t.title;
-  $('t-title').textContent=t.title;$('t-sub').textContent=t.sub;$('t-amt').textContent=t.amt;$('t-rate').textContent=t.rate;$('t-hint').textContent=t.hint;
-  $('copy').textContent=t.copy;
+  $('t-title').textContent=t.title;$('t-sub').textContent=t.sub;$('t-amt').textContent=t.amt;$('t-rate').textContent=t.rate;$('t-hint').textContent=t.hint;$('t-res').textContent=t.res;
+  
   $('l-th').textContent=l==='en'?'TH':'ไทย';$('l-th').className=l==='th'?'on':'';$('l-en').className=l==='en'?'on':'';
   calc();
 }
@@ -98,11 +98,6 @@ function calc(){
 rateEl.addEventListener('input',calc);amtEl.addEventListener('input',calc);
 $('l-th').addEventListener('click',function(){setLang('th')});
 $('l-en').addEventListener('click',function(){setLang('en')});
-$('copy').addEventListener('click',function(){
-  if(!last)return;
-  function flash(x){var b=$('copy');b.textContent=x;setTimeout(function(){b.textContent=T[lang].copy},1200)}
-  try{navigator.clipboard.writeText(last).then(function(){flash(T[lang].ok)},function(){flash(T[lang].fail)})}catch(e){flash(T[lang].fail)}
-});
 setLang(lang);
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
 </script>
